@@ -1,4 +1,5 @@
 import pytest
+
 from stix2matcher.matcher import match
 
 _observations = [
@@ -30,8 +31,8 @@ _observations = [
 
 @pytest.mark.parametrize("pattern", [
     "[person:knows_ref.name = 'bob']",
-    "[person:knows_refs[*].name = 'alice' or person:knows_ref.name = 'darlene']",
-    "[person:knows_refs[*].name = 'carol' and person:knows_refs[*].name = 'bob']",
+    "[person:knows_refs[*].name = 'alice' OR person:knows_ref.name = 'darlene']",
+    "[person:knows_refs[*].name = 'carol' AND person:knows_refs[*].name = 'bob']",
     "[person:knows_refs[*].knows_refs[*].name = 'alice']"
 ])
 def test_references_match(pattern):
@@ -40,8 +41,8 @@ def test_references_match(pattern):
 
 @pytest.mark.parametrize("pattern", [
     "[person:knows_ref.name = 'erin']",
-    "[person:knows_refs[*].name = 'alice' and person:knows_ref.name = 'darlene']",
-    "[person:knows_refs[*].name = 'erin' or person:knows_refs[*].name = 'darlene']"
+    "[person:knows_refs[*].name = 'alice' AND person:knows_ref.name = 'darlene']",
+    "[person:knows_refs[*].name = 'erin' OR person:knows_refs[*].name = 'darlene']"
 ])
 def test_references_nomatch(pattern):
     assert not match(pattern, _observations)

@@ -1,6 +1,6 @@
+import pytest
 from stix2patterns.pattern import ParseException
 
-import pytest
 from stix2matcher.matcher import MatcherException, match
 
 _observations = [
@@ -14,6 +14,7 @@ _observations = [
                 "type": "event",
                 "good_ts": u"2010-05-21T13:21:43Z",
                 "good_ts_frac": u"2010-05-21T13:21:43.1234Z",
+                "good_ts_frac_nano": u"2010-05-21T13:21:43.123456789Z",
                 "bad_ts": [
                     u"2010-05-21T13:21:43",
                     u"2010-05-21T13:21:43z",
@@ -34,8 +35,9 @@ _observations = [
     "[event:good_ts > t'1974-11-05T05:31:11Z']",
     "[event:good_ts < t'3012-08-17T17:43:55Z']",
     "[event:good_ts_frac = t'2010-05-21T13:21:43.1234Z']",
-    "[event:good_ts in (t'1953-11-26T14:25:33Z', t'2010-05-21T13:21:43Z', t'2000-06-17T17:25:51.44Z')]",
-    "[event:good_ts not in (t'1953-11-26T14:25:33Z', t'1985-07-25T20:27:52Z', t'2000-06-17T17:25:51.44Z')]"
+    "[event:good_ts_frac_nano = t'2010-05-21T13:21:43.123456789Z']",
+    "[event:good_ts IN (t'1953-11-26T14:25:33Z', t'2010-05-21T13:21:43Z', t'2000-06-17T17:25:51.44Z')]",
+    "[event:good_ts NOT IN (t'1953-11-26T14:25:33Z', t'1985-07-25T20:27:52Z', t'2000-06-17T17:25:51.44Z')]"
 ])
 def test_ts_match(pattern):
     assert match(pattern, _observations)
@@ -48,8 +50,9 @@ def test_ts_match(pattern):
     "[event:good_ts <= t'1974-11-05T05:31:11Z']",
     "[event:good_ts >= t'3012-08-17T17:43:55Z']",
     "[event:good_ts_frac != t'2010-05-21T13:21:43.1234Z']",
-    "[event:good_ts not in (t'1953-11-26T14:25:33Z', t'2010-05-21T13:21:43Z', t'2000-06-17T17:25:51.44Z')]",
-    "[event:good_ts in (t'1953-11-26T14:25:33Z', t'1985-07-25T20:27:52Z', t'2000-06-17T17:25:51.44Z')]"
+    "[event:good_ts_frac_nano != t'2010-05-21T13:21:43.123456789Z']",
+    "[event:good_ts NOT IN (t'1953-11-26T14:25:33Z', t'2010-05-21T13:21:43Z', t'2000-06-17T17:25:51.44Z')]",
+    "[event:good_ts IN (t'1953-11-26T14:25:33Z', t'1985-07-25T20:27:52Z', t'2000-06-17T17:25:51.44Z')]"
 ])
 def test_ts_nomatch(pattern):
     assert not match(pattern, _observations)
@@ -61,20 +64,10 @@ def test_ts_nomatch(pattern):
     "[event:good_ts = t'2010-05-21t13:21:43Z']",
     "[event:good_ts = t'2010/05/21T13:21:43Z']",
     "[event:good_ts = t'2010-05-21T13:21Z']",
+    "[event:good_ts = t'2010-05-21T13:21:99Z']"
 ])
 def test_ts_pattern_error_parse(pattern):
     with pytest.raises(ParseException):
-        match(pattern, _observations)
-
-
-@pytest.mark.parametrize("pattern", [
-    # This one causes MatcherException because the parser doesn't
-    # validate the timestamp content, only its syntax, so the error
-    # isn't caught until match time.
-    "[event:good_ts = t'2010-05-21T13:21:99Z']",
-])
-def test_ts_pattern_error_match(pattern):
-    with pytest.raises(MatcherException):
         match(pattern, _observations)
 
 
